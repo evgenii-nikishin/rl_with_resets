@@ -1,0 +1,60 @@
+# SPR (Schwarzer et al, 2021)
+# import dopamine.jax.agents.dqn.dqn_agent
+import dopamine.jax.networks
+import dopamine.discrete_domains.gym_lib
+import dopamine.discrete_domains.run_experiment
+import dopamine.replay_memory.prioritized_replay_buffer
+import discrete_control.networks
+import discrete_control.agents.rainbow_agent
+import discrete_control.replay_memory.batched_buffer
+
+# Parameters specific to DrQ are higlighted by comments
+JaxDQNAgent.gamma = 0.99
+JaxDQNAgent.update_horizon = 10    # DrQ (instead of 3)
+JaxDQNAgent.min_replay_history = 2000    # DrQ (instead of 20000)
+JaxDQNAgent.update_period = 1    # DrQ (rather than 4)
+JaxDQNAgent.target_update_period = 1    # DrQ (rather than 8000)
+JaxDQNAgent.epsilon_train = 0.00
+JaxDQNAgent.epsilon_eval = 0.001
+JaxDQNAgent.epsilon_decay_period = 2001    # DrQ
+JaxDQNAgent.optimizer = 'adam'
+
+JaxSPRAgent.noisy = True
+JaxSPRAgent.dueling = True
+JaxSPRAgent.double_dqn = True
+JaxSPRAgent.distributional = True
+JaxSPRAgent.num_atoms = 51
+JaxSPRAgent.log_every = 100
+JaxSPRAgent.replay_ratio = 64
+JaxSPRAgent.batch_size = 32
+JaxSPRAgent.spr_weight = 5
+JaxSPRAgent.jumps = 5
+JaxSPRAgent.data_augmentation = True
+JaxSPRAgent.replay_scheme = 'prioritized'
+JaxSPRAgent.network    = @discrete_control.networks.RainbowDQNNetwork
+JaxSPRAgent.epsilon_fn = @jax.agents.dqn.dqn_agent.linearly_decaying_epsilon
+
+discrete_control.networks.RainbowDQNNetwork.renormalize = True
+
+# Note these parameters are from DER (van Hasselt et al, 2019)
+discrete_control.agents.rainbow_agent.create_optimizer.learning_rate = 0.0001
+discrete_control.agents.rainbow_agent.create_optimizer.eps = 0.00015
+
+atari_lib.create_atari_environment.game_name = 'Breakout'
+# Atari 100K benchmark doesn't use sticky actions.
+atari_lib.create_atari_environment.sticky_actions = False
+AtariPreprocessing.terminal_on_life_loss = True
+Runner.num_iterations = 10
+Runner.training_steps = 10000    # agent steps per iter
+DataEfficientAtariRunner.num_eval_episodes = 100    # agent episodes
+DataEfficientAtariRunner.num_eval_envs = 100    # agent episodes
+DataEfficientAtariRunner.num_train_envs = 1    # agent episodes
+DataEfficientAtariRunner.max_noops = 30
+Runner.max_steps_per_episode = 27000    # agent steps
+
+PrioritizedJaxSubsequenceParallelEnvReplayBuffer.replay_capacity = 200000
+PrioritizedJaxSubsequenceParallelEnvReplayBuffer.batch_size = 32
+PrioritizedJaxSubsequenceParallelEnvReplayBuffer.n_envs = 1    # agent episodes
+JaxSubsequenceParallelEnvReplayBuffer.replay_capacity = 200000
+JaxSubsequenceParallelEnvReplayBuffer.batch_size = 32
+JaxSubsequenceParallelEnvReplayBuffer.n_envs = 1    # agent episodes
